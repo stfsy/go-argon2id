@@ -21,7 +21,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - run: sudo apt-get install -y libseccomp-dev pkg-config
       - run: go mod download
       - name: Run linters
         uses: golangci/golangci-lint-action@v8
