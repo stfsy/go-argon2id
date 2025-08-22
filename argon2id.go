@@ -116,9 +116,23 @@ func ComparePasswordAndHash(password, hash string) (match bool, err error) {
 // created with. This can be useful if you want to update your hash params over time (which you
 // should).
 func CheckHash(password, hash string) (match bool, params *Params, err error) {
+	if password == "" || hash == "" {
+		return false, nil, ErrInvalidHash
+	}
+
 	params, salt, key, err := DecodeHash(hash)
 	if err != nil {
 		return false, nil, err
+	}
+	// Defensive checks for fuzz/malformed input
+	if params == nil || salt == nil || key == nil {
+		return false, nil, ErrInvalidHash
+	}
+	if params.Iterations < 1 || params.Memory < 1 || params.Parallelism < 1 || params.KeyLength < 1 {
+		return false, nil, ErrInvalidHash
+	}
+	if len(salt) == 0 || len(key) == 0 {
+		return false, nil, ErrInvalidHash
 	}
 
 	otherKey := argon2.IDKey([]byte(password), salt, params.Iterations, params.Memory, params.Parallelism, params.KeyLength)
